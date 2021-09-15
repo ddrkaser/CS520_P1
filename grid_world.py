@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 
 import numpy as np
-from queue import PriorityQueue
 
 # creating gridworld
 def generate_gridworld(length,width,p):
-    grid = np.random.choice([0,1],length*width, [1-p,p]).reshape(length,width)
+    grid = np.random.choice([0,1],length*width, [1.0-p,p]).reshape(length,width)
     grid[0][0] = 0
     grid[-1][-1] = 0
     return grid
@@ -21,11 +20,7 @@ h[currentCell] is a heuristic cost from currentCell to the goal
 f[currentCell]=g[currentCell]+h[currentCell]
 """
 
-def algorithmA(grid,start,end):
-    pq=PriorityQueue()
-    tieBreaker=0 # it is use to break tie of cells which have same f value.
-    pq.put((0,tieBreaker,start)) # add start cell to the priority Queue.
-    cameFrom={} # keep track of parent of cell
+def algorithmA(grid,start,end, is_known):
     g={(x, y):float("inf") for y, eachRow in enumerate(grid) for x, eachcolumn in enumerate(eachRow)}
     g[start]=0
     f={(x, y):float("inf") for y, eachRow in enumerate(grid) for x, eachcolumn in enumerate(eachRow)}
@@ -35,11 +30,61 @@ def algorithmA(grid,start,end):
     h = {(x, y): hureisticValue((x, y), end) for y, eachRow in enumerate(grid) for x, eachcolumn in enumerate(eachRow)}
     parent = {}
 	
-    curr_knowledge = [[0 for i in range(len(grid))] for j in range(len(grid[0]))]
+    pq=set([ (f[start], start) ]) # add start cell and distance information to the priority queue.
 	
-    #while True:
-        # A* per page 2 of assignment description
-		# Move pointer square by square along path
+    curr_knowledge = [[0 for i in range(len(grid))] for j in range(len(grid[0]))]
+    if is_known:
+        curr_knowledge = grid
+    print(curr_knowledge)
+    while True:
+        n = min(pq)
+        pq.remove(n)
+        successors = []
+        curr_pos = n[1]
+		
+		# if goal node removed from priority queue, shortest path found
+        if curr_pos == end:
+            shortest_path = []
+            path_pointer = end
+            while path_pointer != start:
+                shortest_path.append(path_pointer)
+                path_pointer = parent[path_pointer]
+            shortest_path = shortest_path[::-1]
+            print(shortest_path)
+            break
+			
+		# A* algorithm, based on assignment instructions
+		# Determine which neighbors are valid successors
+        if curr_pos[0] > 0 and curr_knowledge[curr_pos[1]][curr_pos[0] - 1] == 0: # the current node has a neighbor to its left which is unblocked
+            left_neighbor = (curr_pos[0] - 1, curr_pos[1])
+            if g[left_neighbor] > g[curr_pos] + 1: # if neighbor is undiscovered
+                successors.append(left_neighbor)
+				
+        if curr_pos[0] < len(curr_knowledge[0])  - 1 and curr_knowledge[curr_pos[1]][curr_pos[0] + 1] == 0: # the current node has a neighbor to its right which is unblocked
+            right_neighbor = (curr_pos[0] + 1, curr_pos[1])
+            if g[right_neighbor] > g[curr_pos] + 1: # if neighbor is undiscovered
+                successors.append(right_neighbor)
+		
+        if curr_pos[1] > 0 and curr_knowledge[curr_pos[1] - 1][curr_pos[0]] == 0: # the current node has a neighbor to its top which is unblocked
+            top_neighbor = (curr_pos[0], curr_pos[1] - 1)
+            if g[top_neighbor] > g[curr_pos] + 1: # if neighbor is undiscovered
+                successors.append(top_neighbor)
+				
+        if curr_pos[1] < len(curr_knowledge) - 1 and curr_knowledge[curr_pos[1] + 1][curr_pos[0]] == 0: # the current node has a neighbor to its bottom which is unblocked
+            bottom_neighbor = (curr_pos[0], curr_pos[1] + 1)
+            if g[bottom_neighbor] > g[curr_pos] + 1: # if neighbor is undiscovered
+                successors.append(bottom_neighbor)
+				
+        # Update shortest paths and parents for each valid successor and add to priority queue, per assignment instructions
+        for successor in successors:
+            g[successor] = g[curr_pos] + 1
+            parent[successor] = curr_pos
+            pq.add((g[successor] + h[successor], successor))
+        
+        if len(pq) == 0: # if priority queue is empty at any point, then unsolvable
+            return False
+       
+	   # Move pointer square by square along path
 			# If new square UNBLOCKED, update curr_knowledge. If BLOCKED, restart loop
 		
-algorithmA(generate_gridworld(5,5,.5), (0,0), (4,4))
+algorithmA(generate_gridworld(5,5,.5), (0,0), (4,4), True)
