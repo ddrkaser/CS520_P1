@@ -3,8 +3,8 @@
 import numpy as np
 
 # creating gridworld
-def generate_gridworld(length,width,p):
-    grid = np.random.choice([0,1],length*width, [1.0-p,p]).reshape(length,width)
+def generate_gridworld(length,width,probability):
+    grid = np.random.choice([0,1],length*width, p=[1.0-probability,probability]).reshape(length,width)
     grid[0][0] = 0
     grid[-1][-1] = 0
     return grid
@@ -24,8 +24,6 @@ def algorithmA(grid,start,end, is_known):
     g={(x, y):float("inf") for y, eachRow in enumerate(grid) for x, eachcolumn in enumerate(eachRow)}
     g[start]=0
     f={(x, y):float("inf") for y, eachRow in enumerate(grid) for x, eachcolumn in enumerate(eachRow)}
-    start = (0,0)
-    #goal = (length,width)
     f[start]=hureisticValue(start, end)
     h = {(x, y): hureisticValue((x, y), end) for y, eachRow in enumerate(grid) for x, eachcolumn in enumerate(eachRow)}
     parent = {}
@@ -87,4 +85,10 @@ def algorithmA(grid,start,end, is_known):
 	   # Move pointer square by square along path
 			# If new square UNBLOCKED, update curr_knowledge. If BLOCKED, restart loop
 		
+#Test
 algorithmA(generate_gridworld(5,5,.5), (0,0), (4,4), True)
+#Test2
+grid = generate_gridworld(20,20,.3)
+start = (0,0)
+end = (len(grid)-1,len(grid)-1)
+path_finder = algorithmA(grid, start, end, True)
