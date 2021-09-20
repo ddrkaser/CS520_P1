@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
 import numpy as np
+from queue import PriorityQueue
+import sys
 
 # creating gridworld
-def generate_gridworld(length,width,p):
-    grid = np.random.choice([0,1],length*width, [1.0-p,p]).reshape(length,width)
+def generate_gridworld(length,width,probability):
+    grid = np.random.choice([0,1],length*width, p=[1.0-probability,probability]).reshape(length,width)
     grid[0][0] = 0
     grid[-1][-1] = 0
     return grid
@@ -24,21 +26,18 @@ def algorithmA(grid,start,end, is_known):
     g={(x, y):float("inf") for y, eachRow in enumerate(grid) for x, eachcolumn in enumerate(eachRow)}
     g[start]=0
     f={(x, y):float("inf") for y, eachRow in enumerate(grid) for x, eachcolumn in enumerate(eachRow)}
-    start = (0,0)
-    #goal = (length,width)
     f[start]=hureisticValue(start, end)
     h = {(x, y): hureisticValue((x, y), end) for y, eachRow in enumerate(grid) for x, eachcolumn in enumerate(eachRow)}
-    parent = {}
-	
-    pq=set([ (f[start], start) ]) # add start cell and distance information to the priority queue.
-	
+    parent = {}	
+    #pq=set([ (f[start], start) ]) # add start cell and distance information to the priority queue.
+    pq = PriorityQueue()
+    pq.put((sum(end),start))
     curr_knowledge = [[0 for i in range(len(grid))] for j in range(len(grid[0]))]
     if is_known:
         curr_knowledge = grid
     print(curr_knowledge)
-    while True:
-        n = min(pq)
-        pq.remove(n)
+    while not pq.empty():
+        n = pq.get()      
         successors = []
         curr_pos = n[1]
 		
@@ -51,7 +50,7 @@ def algorithmA(grid,start,end, is_known):
                 path_pointer = parent[path_pointer]
             shortest_path = shortest_path[::-1]
             print(shortest_path)
-            break
+            return shortest_path
 			
 		# A* algorithm, based on assignment instructions
 		# Determine which neighbors are valid successors
@@ -79,12 +78,21 @@ def algorithmA(grid,start,end, is_known):
         for successor in successors:
             g[successor] = g[curr_pos] + 1
             parent[successor] = curr_pos
-            pq.add((g[successor] + h[successor], successor))
+            pq.put((g[successor] + h[successor], successor))
+        # Move pointer square by square along path
+		#If new square UNBLOCKED, update curr_knowledge. If BLOCKED, restart loop
         
-        if len(pq) == 0: # if priority queue is empty at any point, then unsolvable
-            return False
-       
-	   # Move pointer square by square along path
-			# If new square UNBLOCKED, update curr_knowledge. If BLOCKED, restart loop
-		
-algorithmA(generate_gridworld(5,5,.5), (0,0), (4,4), True)
+    # if priority queue is empty at any point, then unsolvable
+    return "this gridworld is unsolvavle"
+
+
+        
+def main(argv):
+    grid = generate_gridworld(20,20,.1)
+    start = (0,0)
+    end = (len(grid)-1,len(grid)-1)
+    path_finder = algorithmA(grid, start, end, False)
+    
+if __name__ == "__main__":
+  main(sys.argv)
+    
