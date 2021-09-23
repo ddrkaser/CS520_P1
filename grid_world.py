@@ -92,6 +92,7 @@ def A_star(curr_knowledge, start, end):
         for successor in successors:
             g[successor] = g[curr_pos] + 1
             parent[successor] = curr_pos
+	    print(successor)
             pq.add((g[successor] + h[successor], successor))
         
 		# if priority queue is empty at any point, then unsolvable
@@ -155,3 +156,11 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision):
 # is_grid_known is True for Questions 4, 5. It is False for later questions
 # has_four_way_vision is True for all questions except 7
 shortest_path = algorithmA(generate_gridworld(5, 5, 0.3), (0,0), (4,4), False, True)
+#test1
+grid = np.array([[0, 0, 0, 1],
+       [0, 0, 1, 0],
+       [0, 1, 0, 0],
+       [0, 0, 0, 0]])
+start = (0,0)
+end = (len(grid)-1,len(grid)-1)
+path_finder = A_star(grid, start, end)
