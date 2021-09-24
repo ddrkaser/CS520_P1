@@ -2,6 +2,7 @@
 
 import numpy as np
 from math import sqrt
+import matplotlib.pyplot as plt 
 
 # Generates a length * width size gridworld
 # Each square has a probability chance of being blocked
@@ -152,7 +153,35 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision):
             break
         is_broken = False
     return shortest_path
+
+def plot_data_5():
+    probability = []
+    length = []
+    for pr in range(0,10):
+           density = np.random.choice([0,1])
+           probability.append(density)
+           length.append(random())#placholder value until we implement way to track path
+ 
+
+def solvability_plot_4():
+    prob = []
+    solve = []
+    for trial in range(0,101):
+        probability = np.random.choice([0,1])
+        solve.append(algorithmA(generate_gridworld(101,101,probability), (0,0), (101,101),True))
+        prob.append(probability)
     
+    plt.bar(prob,length,color="green")
+    plt.xlabel("Probability")
+    plt.ylabel("Solvability")
+    plt.title("Solvability vs Probability")
+    
+    
+solvability_plot_4()    
+#plot_data_5()    
+
+
+
 # Test algorithm
 # is_grid_known is True for Questions 4, 5. It is False for later questions
 # has_four_way_vision is True for all questions except 7
