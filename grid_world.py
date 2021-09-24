@@ -18,7 +18,7 @@ MANHATTAN_DIST = 1
 CHEBYSHEV_DIST = 2
 
 # Calculates h(x) using one of a range of heuristics
-def hureisticValue(point1, point2, heuristic_type):
+def hureisticValue(point1, point2, heuristic_type = 1):
     x1,y1=point1
     x2,y2=point2
     if heuristic_type == 0:
@@ -34,27 +34,28 @@ f[currentCell]=g[currentCell]+h[currentCell]
 """
 
 # Defines steps for running the A* algorithm once
-def A_star(curr_knowledge, start, end):
+def A_star(curr_knowledge, start, end, heuristic_type = 1):
     # Initializes the g(x), f(x), and h(x) values for all squares
     g = {(x, y):float("inf") for y, eachRow in enumerate(curr_knowledge) for x, eachcolumn in enumerate(eachRow)}
     g[start] = 0
     f = {(x, y):float("inf") for y, eachRow in enumerate(curr_knowledge) for x, eachcolumn in enumerate(eachRow)}
-    f[start] = hureisticValue(start, end, EUCLIDEAN_DIST)
-    h = {(x, y): hureisticValue((x, y), end, EUCLIDEAN_DIST) for y, eachRow in enumerate(curr_knowledge) for x, eachcolumn in enumerate(eachRow)}
+    f[start] = hureisticValue(start, end, heuristic_type)
+    h = {(x, y): hureisticValue((x, y), end, heuristic_type) for y, eachRow in enumerate(curr_knowledge) for x, eachcolumn in enumerate(eachRow)}
     parent = {}
-	
+    visited={start} # it is a set which provide the uniqueness, means it is ensure that not a single cell visit more than onece.
+    tiebreaker = 0
 	# Creates a priority queue using a Python set, adding start cell and its distance information
-    pq = set([ (f[start], start) ])
-	
+    pq = set([ (f[start], tiebreaker, start) ])
     # A* algorithm, based on assignment instructions
     while True:
 		# Remove the node in the priority queue with the smallest f value
         n = min(pq)
+        print(n)
         pq.remove(n)
         successors = []
 		# curr_pos is a tuple (x, y) where x represents the column the square is in, and y represents the row
-        curr_pos = n[1]
-		
+        curr_pos = n[2]
+        visited.remove(curr_pos)
 		# if goal node removed from priority queue, shortest path found
         if curr_pos == end:
             shortest_path = []
@@ -92,9 +93,10 @@ def A_star(curr_knowledge, start, end):
         for successor in successors:
             g[successor] = g[curr_pos] + 1
             parent[successor] = curr_pos
-	    print(successor)
-            pq.add((g[successor] + h[successor], successor))
-        
+            if successor not in visited:
+                tiebreaker += 1
+                pq.add((g[successor] + h[successor], -tiebreaker, successor))
+                visited.add(successor)
 		# if priority queue is empty at any point, then unsolvable
         if len(pq) == 0:
             print("Not solvable")
@@ -127,8 +129,7 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision):
             if grid[y][x] == 1:
                 # If the robot can only see squares in its direction of movement, update its current knowledge of the grid to include this blocked square
                 if not has_four_way_vision:
-                    curr_knowledge[y][x] = 1
-					
+                    curr_knowledge[y][x] = 1				
                 shortest_path = A_star(curr_knowledge, prev_sq, end)
                 if not shortest_path:
                     return False
