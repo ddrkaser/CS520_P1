@@ -112,7 +112,7 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision):
     if is_grid_known:
         curr_knowledge = grid
     print(curr_knowledge)
-    compelet_path = []
+    complete_path = []
 	# Run A* once on grid as known, returning False if unsolvable
     shortest_path = A_star(curr_knowledge, start, end)
     print(shortest_path)
@@ -129,7 +129,7 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision):
                 # If the robot can only see squares in its direction of movement, update its current knowledge of the grid to include this blocked square
                 if not has_four_way_vision:
                     curr_knowledge[y][x] = 1	
-                compelet_path.remove(prev_sq)
+                complete_path.remove(prev_sq)
                 shortest_path = A_star(curr_knowledge, prev_sq, end)                
                 if not shortest_path:
                     return False
@@ -137,7 +137,7 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision):
                 break
 			# If new square unblocked, update curr_knowledge. Loop will restart and move to next square on presumed shortest path
             else:
-                compelet_path.append(sq)
+                complete_path.append(sq)
                  # If the robot can see in all compass directions, update squares adjacent to its current position
                 if has_four_way_vision:
                      if x != 0:
@@ -152,7 +152,7 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision):
         if not is_broken:
             break
         is_broken = False
-    return [compelet_path, curr_knowledge]
+    return [complete_path, curr_knowledge]
 
 def plot_data_5():
     probability = []
@@ -162,7 +162,6 @@ def plot_data_5():
            probability.append(density)
            length.append(random())#placholder value until we implement way to track path
  
-
 def solvability_plot_4():
     prob = []
     solve = []
@@ -176,10 +175,8 @@ def solvability_plot_4():
     plt.ylabel("Solvability")
     plt.title("Solvability vs Probability")
     
-    
 solvability_plot_4()    
 #plot_data_5()    
-
 
 
 # Test algorithm
