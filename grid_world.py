@@ -48,10 +48,9 @@ def A_star(curr_knowledge, start, end, heuristic_type = 1):
 	# Creates a priority queue using a Python set, adding start cell and its distance information
     pq = set([ (f[start], tiebreaker, start) ])
     # A* algorithm, based on assignment instructions
-    while True:
+    while not len(pq) == 0:
 		# Remove the node in the priority queue with the smallest f value
         n = min(pq)
-        print(n)
         pq.remove(n)
         successors = []
 		# curr_pos is a tuple (x, y) where x represents the column the square is in, and y represents the row
@@ -113,7 +112,7 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision):
     if is_grid_known:
         curr_knowledge = grid
     print(curr_knowledge)
-    
+    compelet_path = []
 	# Run A* once on grid as known, returning False if unsolvable
     shortest_path = A_star(curr_knowledge, start, end)
     print(shortest_path)
@@ -125,21 +124,22 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision):
         for sq in shortest_path:
             x = sq[0]
             y = sq[1]
-			
 			# If blocked, rerun A* and restart loop
             if grid[y][x] == 1:
                 # If the robot can only see squares in its direction of movement, update its current knowledge of the grid to include this blocked square
                 if not has_four_way_vision:
-                    curr_knowledge[y][x] = 1				
-                shortest_path = A_star(curr_knowledge, prev_sq, end)
+                    curr_knowledge[y][x] = 1	
+                compelet_path.remove(prev_sq)
+                shortest_path = A_star(curr_knowledge, prev_sq, end)                
                 if not shortest_path:
                     return False
                 is_broken = True
                 break
 			# If new square unblocked, update curr_knowledge. Loop will restart and move to next square on presumed shortest path
             else:
+                compelet_path.append(sq)
                  # If the robot can see in all compass directions, update squares adjacent to its current position
-                 if has_four_way_vision:
+                if has_four_way_vision:
                      if x != 0:
                          curr_knowledge[y][x - 1] = grid[y][x - 1]
                      if x < len(curr_knowledge[0]) - 1:
@@ -152,7 +152,7 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision):
         if not is_broken:
             break
         is_broken = False
-    return shortest_path
+    return [compelet_path, curr_knowledge]
 
 def plot_data_5():
     probability = []
@@ -194,3 +194,11 @@ grid = np.array([[0, 0, 0, 1],
 start = (0,0)
 end = (len(grid)-1,len(grid)-1)
 path_finder = A_star(grid, start, end)
+#test2
+grid = generate_gridworld(10, 10, 0.2)
+start = (0,0)
+end = (len(grid)-1,len(grid)-1)
+path_finder = A_star(grid, start, end,1)
+A_path, A_knowledge = algorithmA(grid,start,end,is_grid_known=False, has_four_way_vision=True)
+print(A_path)
+print(A_knowledge)
