@@ -3,7 +3,7 @@
 import numpy as np
 from math import sqrt
 import matplotlib.pyplot as plt 
-
+import time
 # Generates a length * width size gridworld
 # Each square has a probability chance of being blocked
 # The start and end squares are set to unblocked
@@ -65,7 +65,6 @@ def A_star(curr_knowledge, start, end, heuristic_type = 1):
                 path_pointer = parent[path_pointer]
             shortest_path.append(start)
             shortest_path = shortest_path[::-1]
-            print(shortest_path)
             return shortest_path
 			
 		# Determine which neighbors are valid successors
@@ -99,23 +98,19 @@ def A_star(curr_knowledge, start, end, heuristic_type = 1):
                 visited.add(successor)
 		# if priority queue is empty at any point, then unsolvable
         if len(pq) == 0:
-            print("Not solvable")
             return False
 
 # Handles processing of Repeated A*, restarting that algorithm if a blocked square is found in the determined shortest path
-def algorithmA(grid, start, end, is_grid_known, has_four_way_vision):
-    print(grid)
+def algorithmA(grid, start, end, is_grid_known, has_four_way_vision, heuristic_type = 1):
     # The assumed state of the gridworld at any point in time. For some questions, the current knowledge is unknown at the start
     curr_knowledge = [[0 for i in range(len(grid))] for j in range(len(grid[0]))]
     # If the grid is considered known to the robot, operate on that known grid
 	# Else, the robot assumes a completely unblocked gridworld and will have to discover it as it moves
     if is_grid_known:
         curr_knowledge = grid
-    print(curr_knowledge)
     complete_path = []
 	# Run A* once on grid as known, returning False if unsolvable
     shortest_path = A_star(curr_knowledge, start, end)
-    print(shortest_path)
     if not shortest_path:
         return False
     is_broken = False
@@ -154,32 +149,7 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision):
         is_broken = False
     return [complete_path, curr_knowledge]
 
-    
 
-
-# Test algorithm
-# is_grid_known is True for Questions 4, 5. It is False for later questions
-# has_four_way_vision is True for all questions except 7
-shortest_path = algorithmA(generate_gridworld(5, 5, 0.3), (0,0), (4,4), False, True)
-#test1
-grid = np.array([[0, 0, 0, 1],
-       [0, 0, 1, 0],
-       [0, 1, 0, 0],
-       [0, 0, 0, 0]])
-start = (0,0)
-end = (len(grid)-1,len(grid)-1)
-path_finder = A_star(grid, start, end)
-#test2
-grid = generate_gridworld(10, 10, 0.2)
-start = (0,0)
-end = (len(grid)-1,len(grid)-1)
-path_finder = A_star(grid, start, end,1)
-A_path, A_knowledge = algorithmA(grid,start,end,is_grid_known=False, has_four_way_vision=True)
-print(A_path)
-print(A_knowledge)
-
-
-#Plotting functions
 def plot_data_6():
     probability = []
     length = []
@@ -191,25 +161,72 @@ def plot_data_6():
     plt.plot(probability,length,color="green")
     plt.xlabel("Probability")
     plt.ylabel("Path Length")
-    plt.title("SPath Length vs Probability")   
+    plt.title("SPath Length vs Probability")
     
+def plot_data_5():
+    euclidean_vals = []
+    manhattan_vals = []
+    chebyshev_vals = []
+    
+    for heuristic in (EUCLIDEAN_DIST, MANHATTAN_DIST, CHEBYSHEV_DIST):
+        trials = 0
+        while trials < 100:
+            t1 = time.time()
+            res = algorithmA(generate_gridworld(101, 101, 0.3), (0, 0), (100, 100), True, True, heuristic)
+            t2 = time.time()
+            if not res:
+                continue
+            runtime = t2 - t1
+            if heuristic == EUCLIDEAN_DIST:
+                euclidean_vals.append(runtime)
+            elif heuristic == MANHATTAN_DIST:
+                manhattan_vals.append(runtime)
+            else:
+                chebyshev_vals.append(runtime)
+            trials += 1
+    plt.xlabel("Heuristic Type")
+    plt.ylabel("Average A* Runtime (s)")
+    plt.title("Average Runtime by Heuristic Type, 100 trials, dim = 101, p = .3")
+    plt.bar(["Euclidean", "Manhattan", "Chebyshev"], [sum(euclidean_vals) / len(euclidean_vals), sum(manhattan_vals) / len(manhattan_vals), sum(chebyshev_vals) / len(chebyshev_vals)], color="#FF0000")           
 
 def solvability_plot_4():
-    prob = []
-    solve = []
-    for trial in range(0,30):
-        probability = random()
-        path, knowledge = algorithmA(generate_gridworld(100,100,probability), (0,0), (101,101),is_grid_known=True, has_four_way_vision=True)
-	solve.append(knowledge)
-        prob.append(probability)
+    probs = list(range(0, 101, 2))
+    probs = list(map(lambda x : x / 100, probs))
+    print(probs)
+    solvability = [0] * len(probs)
+	
+    for i, prob in enumerate(probs):
+        for trial in range(100):
+            res = algorithmA(generate_gridworld(101, 101, prob), (0, 0), (100, 100), True, True)
+            if res:
+                solvability[i] += 1
     
-    plt.plot(prob,solve,color="green")
     plt.xlabel("Probability")
     plt.ylabel("Solvability")
-    plt.title("Solvability vs Probability")
-    #print(solve)
+    plt.title("Solvability vs. Probability")
+    plt.xticks([0, .25, .5, .75, 1])
+    plt.plot(probs, solvability)
+    return solvability
     
-    
-solvability_plot_4()    
-#plot_data_6()
+#print("Plot 4 solvability array:", solvability_plot_4())
+#plot_data_5()    
 
+
+# Test algorithm
+# is_grid_known is True for Questions 4, 5. It is False for later questions
+# has_four_way_vision is True for all questions except 7
+#shortest_path = algorithmA(generate_gridworld(5, 5, 0.3), (0,0), (4,4), False, True)
+#test1
+#grid = np.array([[0, 0, 0, 1],
+#       [0, 0, 1, 0],
+#       [0, 1, 0, 0],
+#       [0, 0, 0, 0]])
+#start = (0,0)
+#end = (len(grid)-1,len(grid)-1)
+#path_finder = A_star(grid, start, end)
+#test2
+#grid = generate_gridworld(10, 10, 0.2)
+#start = (0,0)
+#end = (len(grid)-1,len(grid)-1)
+#path_finder = A_star(grid, start, end,1)
+#A_path, A_knowledge = algorithmA(grid,start,end,is_grid_known=False, has_four_way_vision=True)
