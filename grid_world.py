@@ -273,10 +273,6 @@ def plot_Q6():
             res_known =algorithmA(grid, (0, 0), (100, 100), True, True)
             length_full.append(len(res_known[0]))
             
-            
-            
-        
-    
     
 
 
