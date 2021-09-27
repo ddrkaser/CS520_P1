@@ -48,11 +48,14 @@ def A_star(curr_knowledge, start, end, heuristic_type = 1):
     tiebreaker = 0
 	# Creates a priority queue using a Python set, adding start cell and its distance information
     pq = set([ (f[start], tiebreaker, start) ])
+    #count cell being processed
+    cell_count = 0
     # A* algorithm, based on assignment instructions
     while not len(pq) == 0:
 		# Remove the node in the priority queue with the smallest f value
         n = min(pq)
         pq.remove(n)
+        cell_count += 1
         successors = []
 		# curr_pos is a tuple (x, y) where x represents the column the square is in, and y represents the row
         curr_pos = n[2]
@@ -66,7 +69,7 @@ def A_star(curr_knowledge, start, end, heuristic_type = 1):
                 path_pointer = parent[path_pointer]
             shortest_path.append(start)
             shortest_path = shortest_path[::-1]
-            return shortest_path
+            return [shortest_path, cell_count]
 			
 		# Determine which neighbors are valid successors
         if curr_pos[0] > 0 and curr_knowledge[curr_pos[1]][curr_pos[0] - 1] == 0: # the current node has a neighbor to its left which is unblocked
@@ -115,9 +118,10 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision, heuristic_t
     if not shortest_path:
         return False
     is_broken = False
+    cell_count = shortest_path[1]
     while True:
 		# Move pointer square by square along path
-        for sq in shortest_path:
+        for sq in shortest_path[0]:
             x = sq[0]
             y = sq[1]
 			# If blocked, rerun A* and restart loop
@@ -130,11 +134,12 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision, heuristic_t
                 if not shortest_path:
                     return False
                 is_broken = True
+                cell_count += shortest_path[1]
                 break
 			# If new square unblocked, update curr_knowledge. Loop will restart and move to next square on presumed shortest path
             else:
                 complete_path.append(sq)
-                 # If the robot can see in all compass directions, update squares adjacent to its current position
+                # If the robot can see in all compass directions, update squares adjacent to its current position
                 if has_four_way_vision:
                      if x != 0:
                          curr_knowledge[y][x - 1] = grid[y][x - 1]
@@ -148,7 +153,7 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision, heuristic_t
         if not is_broken:
             break
         is_broken = False
-    return [complete_path, curr_knowledge]
+    return [complete_path, cell_count, curr_knowledge]
 
 
 def plot_data_6():
@@ -238,7 +243,45 @@ def solvability_plot_4():
     plt.xticks([0, .25, .5, .75, 1])
     plt.plot(probs, solvability)
     return solvability
+
     
+#Q6
+#Best heuristic in Q5:Manhattan
+#Density p=range(0,0.3)
+"""Trajectory Length: Number of cells being traversed to reach the goal node(which might also include double counting cells when we backtrack) 
+Length of Shortest Path in Final Discovered Gridworld: the path which we get from Running a single A* algorithm on the knowledge grid we got from running repeated A* algorithm
+Length of Shortest Path in Full Gridworld:the path which we get from Running a single A* algorithm on the gridworld in which we know the status of blocked and unblocked cells.
+Average Number of Cells Processed by Repeated A*: Number of cells that were popped from the fringe"""
+def plot_Q6():
+    probs = list(range(0, 31, 1))
+    probs = list(map(lambda x : x / 100, probs))
+    trajectory_length = []
+    length_discovered = []
+    length_full =[]
+    Num_of_cell = []
+    
+    for i, prob in enumerate(probs):
+        trial = 0
+        while trial < 100:
+            grid = generate_gridworld(101, 101, prob)
+            res_unknown = algorithmA(grid, (0, 0), (100, 100), False, True)
+            if not res_unknown:
+                continue
+            trajectory_length.append(len(res_unknown[0]))
+            Num_of_cell.append(res_unknown[1])
+            #length_discovered = []
+            res_known =algorithmA(grid, (0, 0), (100, 100), True, True)
+            length_full.append(len(res_known[0]))
+            
+            
+            
+        
+    
+    
+
+
+
+
 #print("Plot 4 solvability array:", solvability_plot_4())
 #plot_data_5()    
 
