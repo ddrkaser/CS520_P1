@@ -154,29 +154,7 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision):
         is_broken = False
     return [complete_path, curr_knowledge]
 
-def plot_data_5():
-    probability = []
-    length = []
-    for pr in range(0,10):
-           density = np.random.choice([0,1])
-           probability.append(density)
-           length.append(random())#placholder value until we implement way to track path
- 
-def solvability_plot_4():
-    prob = []
-    solve = []
-    for trial in range(0,101):
-        probability = np.random.choice([0,1])
-        solve.append(algorithmA(generate_gridworld(101,101,probability), (0,0), (101,101),True))
-        prob.append(probability)
     
-    plt.bar(prob,length,color="green")
-    plt.xlabel("Probability")
-    plt.ylabel("Solvability")
-    plt.title("Solvability vs Probability")
-    
-solvability_plot_4()    
-#plot_data_5()    
 
 
 # Test algorithm
@@ -199,3 +177,39 @@ path_finder = A_star(grid, start, end,1)
 A_path, A_knowledge = algorithmA(grid,start,end,is_grid_known=False, has_four_way_vision=True)
 print(A_path)
 print(A_knowledge)
+
+
+#Plotting functions
+def plot_data_6():
+    probability = []
+    length = []
+    for pr in range(0,10):
+           density = Random.random()
+           probability.append(density)
+           length.append(path_finder)
+    
+    plt.plot(probability,length,color="green")
+    plt.xlabel("Probability")
+    plt.ylabel("Path Length")
+    plt.title("SPath Length vs Probability")   
+    
+
+def solvability_plot_4():
+    prob = []
+    solve = []
+    for trial in range(0,30):
+        probability = random()
+        path, knowledge = algorithmA(generate_gridworld(100,100,probability), (0,0), (101,101),is_grid_known=True, has_four_way_vision=True)
+	solve.append(knowledge)
+        prob.append(probability)
+    
+    plt.plot(prob,solve,color="green")
+    plt.xlabel("Probability")
+    plt.ylabel("Solvability")
+    plt.title("Solvability vs Probability")
+    #print(solve)
+    
+    
+solvability_plot_4()    
+#plot_data_6()
+
