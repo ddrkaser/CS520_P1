@@ -223,7 +223,7 @@ def plot_Q5():
     plt.bar(["Euclidean", "Manhattan", "Chebyshev"], results.values() , color="#FF0000")
     return results
     
-results = plot_Q5()        
+#results = plot_Q5()        
 
 def solvability_plot_4():
     probs = list(range(0, 101, 2))
@@ -252,39 +252,66 @@ def solvability_plot_4():
 Length of Shortest Path in Final Discovered Gridworld: the path which we get from Running a single A* algorithm on the knowledge grid we got from running repeated A* algorithm
 Length of Shortest Path in Full Gridworld:the path which we get from Running a single A* algorithm on the gridworld in which we know the status of blocked and unblocked cells.
 Average Number of Cells Processed by Repeated A*: Number of cells that were popped from the fringe"""
-def plot_Q6():
-    probs = list(range(0, 31, 1))
+def plot_Q6and7(has_four_way_vision):
+    probs = list(range(0, 31, 2))
     probs = list(map(lambda x : x / 100, probs))
-    trajectory_length = []
-    length_discovered = []
+    trajectory_length = {prob: [] for prob in probs}
+    length_discovered = {prob: [] for prob in probs}
+    traj_over_length_disc = {prob: [] for prob in probs}
+    disc_over_full = {prob: [] for prob in probs}
+    
     length_full =[]
-    Num_of_cell = []
+    Num_of_cell = {prob: [] for prob in probs}
     
     for i, prob in enumerate(probs):
         trial = 0
-        while trial < 100:
+        while trial < 10:
             grid = generate_gridworld(101, 101, prob)
-            res_unknown = algorithmA(grid, (0, 0), (100, 100), False, True)
+            res_unknown = algorithmA(grid, (0, 0), (100, 100), False, has_four_way_vision)
             if not res_unknown:
                 continue
-            trajectory_length.append(len(res_unknown[0]))
-            Num_of_cell.append(res_unknown[1])
+            #trajectory_length[prob].append(len(res_unknown[0]))
+            Num_of_cell[prob].append(res_unknown[1])
+            #shortest_discovered = A_star(res_unknown[2], (0, 0), (100, 100))
+            #length_discovered[prob].append(len(shortest_discovered[0]))
+            #traj_over_length_disc[prob].append(len(res_unknown[0]) / len(shortest_discovered[0]))
+            #shortest_full = A_star(grid, (0, 0), (100, 100))
+            #disc_over_full[prob].append(len(shortest_discovered[0]) / len(shortest_full[0]))
             #length_discovered = []
-            res_known =algorithmA(grid, (0, 0), (100, 100), True, True)
-            length_full.append(len(res_known[0]))
+           # res_known =algorithmA(grid, (0, 0), (100, 100), True, has_four_way_vision)
+            #length_full.append(len(res_known[0]))
+            trial += 1
             
-            
-            
+    # Plot 1
+    #plt.title("Density vs. Average Trajectory Length (one way vision)")
+    #plt.xlabel("Density")
+    #plt.ylabel("Average Trajectory Length")
+    #plt.plot(probs, list(map(lambda x: (sum(x) / len(x)), list(trajectory_length.values()))))
         
+    # Plot 2
+    #plt.title("Density vs. Average (Length of Trajectory / Length of Shortest Path in Final Discovered Gridworld (one way vision)")
+    #plt.xlabel("Density")
+    #plt.ylabel("Average (Length of Trajectory / Length of Shortest Path in Final Discovered Gridworld")
+    #plt.plot(probs, list(map(lambda x: (sum(x) / len(x)), list(traj_over_length_disc.values()))))
+            
+    # Plot 3
+    #plt.title("Density vs Average (Length of Shortest Path in Final Discovered Gridworld / Length of ShortestPath in Full Gridworld (one way vision)")
+    #plt.xlabel("Density")
+    #plt.ylabel("Average (Length of Shortest Path in Final Discovered Gridworld / Length of ShortestPath in Full Gridworld")
+    #plt.plot(probs, list(map(lambda x: (sum(x) / len(x)), list(disc_over_full.values()))))
     
-    
-
+    # Plot 4
+    plt.title("Density vs Average Number of Cells Processed by Repeated A* (one way vision)")
+    plt.xlabel("Density")
+    plt.ylabel("Average Number of Cells Processed by Repeated A*")
+    plt.plot(probs, list(map(lambda x: (sum(x) / len(x)), list(Num_of_cell.values()))))
 
 
 
 #print("Plot 4 solvability array:", solvability_plot_4())
 #plot_data_5()    
-
+#plot_Q6and7(True)
+plot_Q6and7(False)
 
 # Test algorithm
 # is_grid_known is True for Questions 4, 5. It is False for later questions
