@@ -191,6 +191,7 @@ def plot_data_5():
     plt.bar(["Euclidean", "Manhattan", "Chebyshev"], [sum(euclidean_vals) / len(euclidean_vals), sum(manhattan_vals) / len(manhattan_vals), sum(chebyshev_vals) / len(chebyshev_vals)], color="#FF0000")           
 
 #Heuristic running on the same maze for Q5
+#execute 100 trails, each trial tests which heuristic runs faster(win) on the same maze
 def plot_Q5():
     results = {EUCLIDEAN_DIST:0, MANHATTAN_DIST:0, CHEBYSHEV_DIST:0}
     run_time = {}
@@ -212,8 +213,8 @@ def plot_Q5():
         results[winner] += 1
         trials += 1
     plt.xlabel("Heuristic Type")
-    plt.ylabel("Wins on each run")
-    plt.title("Wins by Heuristic Type, 100 trials, dim = 101, p = .3")
+    plt.ylabel("Total wins")
+    plt.title("Performance analysis, 100 trials, dim = 101, p = .3")
     plt.bar(["Euclidean", "Manhattan", "Chebyshev"], results.values() , color="#FF0000")
     return results
     
