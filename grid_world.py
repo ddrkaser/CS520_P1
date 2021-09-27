@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
+import pandas as pd
 from math import sqrt
 import matplotlib.pyplot as plt 
 import time
@@ -125,7 +126,7 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision, heuristic_t
                 if not has_four_way_vision:
                     curr_knowledge[y][x] = 1	
                 complete_path.remove(prev_sq)
-                shortest_path = A_star(curr_knowledge, prev_sq, end)                
+                shortest_path = A_star(curr_knowledge, prev_sq, end,heuristic_type)                
                 if not shortest_path:
                     return False
                 is_broken = True
@@ -188,6 +189,35 @@ def plot_data_5():
     plt.ylabel("Average A* Runtime (s)")
     plt.title("Average Runtime by Heuristic Type, 100 trials, dim = 101, p = .3")
     plt.bar(["Euclidean", "Manhattan", "Chebyshev"], [sum(euclidean_vals) / len(euclidean_vals), sum(manhattan_vals) / len(manhattan_vals), sum(chebyshev_vals) / len(chebyshev_vals)], color="#FF0000")           
+
+#Heuristic running on the same maze for Q5
+def plot_Q5():
+    results = {EUCLIDEAN_DIST:0, MANHATTAN_DIST:0, CHEBYSHEV_DIST:0}
+    run_time = {}
+    trials = 0
+    while trials <100:
+        grid = generate_gridworld(101, 101, 0.3)
+        for heuristic in (EUCLIDEAN_DIST, MANHATTAN_DIST, CHEBYSHEV_DIST):
+            t1 = time.time()
+            res = A_star(grid, (0, 0), (100, 100), heuristic)
+            t2 = time.time()
+            if not res:
+                break
+            run_time[heuristic] = t2-t1
+        if not res:
+            continue
+        print(run_time)
+        #return the key with min value in the dic, here the heuristic with min time
+        winner = pd.Series(run_time).idxmin()
+        results[winner] += 1
+        trials += 1
+    plt.xlabel("Heuristic Type")
+    plt.ylabel("Wins on each run")
+    plt.title("Wins by Heuristic Type, 100 trials, dim = 101, p = .3")
+    plt.bar(["Euclidean", "Manhattan", "Chebyshev"], results.values() , color="#FF0000")
+    return results
+    
+results = plot_Q5()        
 
 def solvability_plot_4():
     probs = list(range(0, 101, 2))
