@@ -108,6 +108,9 @@ def A_star(curr_knowledge, start, end, heuristic_type = 1):
 def algorithmA(grid, start, end, is_grid_known, has_four_way_vision, heuristic_type = 1):
     # The assumed state of the gridworld at any point in time. For some questions, the current knowledge is unknown at the start
     curr_knowledge = [[0 for i in range(len(grid))] for j in range(len(grid[0]))]
+    final_discovered = [[1 for i in range(len(grid))] for j in range(len(grid[0]))]
+    final_discovered[0][0] = 0
+    final_discovered[-1][-1] = 0
     # If the grid is considered known to the robot, operate on that known grid
 	# Else, the robot assumes a completely unblocked gridworld and will have to discover it as it moves
     if is_grid_known:
@@ -124,11 +127,13 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision, heuristic_t
         for sq in shortest_path[0]:
             x = sq[0]
             y = sq[1]
+            final_discovered[y][x] = 0
 			# If blocked, rerun A* and restart loop
             if grid[y][x] == 1:
                 # If the robot can only see squares in its direction of movement, update its current knowledge of the grid to include this blocked square
                 if not has_four_way_vision:
-                    curr_knowledge[y][x] = 1	
+                    curr_knowledge[y][x] = 1
+                    final_discovered[y][x] = 1
                 complete_path.remove(prev_sq)
                 shortest_path = A_star(curr_knowledge, prev_sq, end,heuristic_type)                
                 if not shortest_path:
@@ -143,89 +148,23 @@ def algorithmA(grid, start, end, is_grid_known, has_four_way_vision, heuristic_t
                 if has_four_way_vision:
                      if x != 0:
                          curr_knowledge[y][x - 1] = grid[y][x - 1]
+                         final_discovered[y][x - 1] = grid[y][x - 1]
                      if x < len(curr_knowledge[0]) - 1:
                          curr_knowledge[y][x + 1] = grid[y][x + 1]
+                         final_discovered[y][x + 1] = grid[y][x + 1]
                      if y != 0:
                          curr_knowledge[y - 1][x] = grid[y - 1][x]
+                         final_discovered[y - 1][x] = grid[y - 1][x]
                      if y < len(curr_knowledge) - 1:
                          curr_knowledge[y + 1][x] = grid[y + 1][x]
+                         final_discovered[y + 1][x] = grid[y + 1][x]
             prev_sq = sq
         if not is_broken:
             break
         is_broken = False
-    return [complete_path, cell_count, curr_knowledge]
+    return [complete_path, cell_count, final_discovered]
 
-
-def plot_data_6():
-    probability = []
-    length = []
-    for pr in range(0,10):
-           density = Random.random()
-           probability.append(density)
-           length.append(path_finder)
-    
-    plt.plot(probability,length,color="green")
-    plt.xlabel("Probability")
-    plt.ylabel("Path Length")
-    plt.title("SPath Length vs Probability")
-    
-def plot_data_5():
-    euclidean_vals = []
-    manhattan_vals = []
-    chebyshev_vals = []
-    
-    for heuristic in (EUCLIDEAN_DIST, MANHATTAN_DIST, CHEBYSHEV_DIST):
-        trials = 0
-        while trials < 100:
-            t1 = time.time()
-            res = algorithmA(generate_gridworld(101, 101, 0.3), (0, 0), (100, 100), True, True, heuristic)
-            t2 = time.time()
-            if not res:
-                continue
-            runtime = t2 - t1
-            if heuristic == EUCLIDEAN_DIST:
-                euclidean_vals.append(runtime)
-            elif heuristic == MANHATTAN_DIST:
-                manhattan_vals.append(runtime)
-            else:
-                chebyshev_vals.append(runtime)
-            trials += 1
-    plt.xlabel("Heuristic Type")
-    plt.ylabel("Average A* Runtime (s)")
-    plt.title("Average Runtime by Heuristic Type, 100 trials, dim = 101, p = .3")
-    plt.bar(["Euclidean", "Manhattan", "Chebyshev"], [sum(euclidean_vals) / len(euclidean_vals), sum(manhattan_vals) / len(manhattan_vals), sum(chebyshev_vals) / len(chebyshev_vals)], color="#FF0000")           
-
-#Heuristic running on the same maze for Q5
-#execute 100 trails, each trial tests which heuristic runs faster(win) on the same maze
-def plot_Q5():
-    results = {EUCLIDEAN_DIST:0, MANHATTAN_DIST:0, CHEBYSHEV_DIST:0}
-    run_time = {}
-    trials = 0
-    while trials <100:
-        grid = generate_gridworld(101, 101, 0.3)
-        for heuristic in (EUCLIDEAN_DIST, MANHATTAN_DIST, CHEBYSHEV_DIST):
-            t1 = time.time()
-            res = A_star(grid, (0, 0), (100, 100), heuristic)
-            t2 = time.time()
-            if not res:
-                break
-            run_time[heuristic] = t2-t1
-        if not res:
-            continue
-        print(run_time)
-        #return the key with min value in the dic, here the heuristic with min time
-        winner = pd.Series(run_time).idxmin()
-        results[winner] += 1
-        trials += 1
-    plt.xlabel("Heuristic Type")
-    plt.ylabel("Total wins")
-    plt.title("Performance analysis, 100 trials, dim = 101, p = .3")
-    plt.bar(["Euclidean", "Manhattan", "Chebyshev"], results.values() , color="#FF0000")
-    return results
-    
-results = plot_Q5()        
-
-def solvability_plot_4():
+def plot_Q4():
     probs = list(range(0, 101, 2))
     probs = list(map(lambda x : x / 100, probs))
     print(probs)
@@ -244,7 +183,35 @@ def solvability_plot_4():
     plt.plot(probs, solvability)
     return solvability
 
+#Heuristic running on the same maze for Q5
+#execute 100 trails, each trial tests which heuristic runs faster(win) on the same maze
+def plot_Q5():
+    results = {EUCLIDEAN_DIST:0, MANHATTAN_DIST:0, CHEBYSHEV_DIST:0}
+    run_time = {}
+    trials = 0
+    while trials <100:
+        grid = generate_gridworld(101, 101, 0.3)
+        for heuristic in (EUCLIDEAN_DIST, MANHATTAN_DIST, CHEBYSHEV_DIST):
+            t1 = time.time()
+            res = A_star(grid, (0, 0), (100, 100), heuristic)
+            t2 = time.time()
+            if not res:
+                break
+            run_time[heuristic] = t2-t1
+        if not res:
+            continue
+        #return the key with min value in the dic, here the heuristic with min time
+        winner = pd.Series(run_time).idxmin()
+        results[winner] += 1
+        trials += 1
+    plt.xlabel("Heuristic Type")
+    plt.ylabel("Total wins")
+    plt.title("Performance analysis, 100 trials, dim = 101, p = .3")
+    plt.bar(["Euclidean", "Manhattan", "Chebyshev"], results.values() , color="#FF0000")
+    return results
     
+#results = plot_Q5()        
+
 #Q6
 #Best heuristic in Q5:Manhattan
 #Density p=range(0,0.3)
@@ -252,45 +219,73 @@ def solvability_plot_4():
 Length of Shortest Path in Final Discovered Gridworld: the path which we get from Running a single A* algorithm on the knowledge grid we got from running repeated A* algorithm
 Length of Shortest Path in Full Gridworld:the path which we get from Running a single A* algorithm on the gridworld in which we know the status of blocked and unblocked cells.
 Average Number of Cells Processed by Repeated A*: Number of cells that were popped from the fringe"""
-def plot_Q6():
-    probs = list(range(0, 31, 1))
+def plot_Q6and7(has_four_way_vision):
+    probs = list(range(0, 31, 2))
     probs = list(map(lambda x : x / 100, probs))
-    trajectory_length = []
-    length_discovered = []
+    trajectory_length = {prob: [] for prob in probs}
+    length_discovered = {prob: [] for prob in probs}
+    traj_over_length_disc = {prob: [] for prob in probs}
+    disc_over_full = {prob: [] for prob in probs}
     length_full =[]
-    Num_of_cell = []
+    Num_of_cell = {prob: [] for prob in probs}
     
     for i, prob in enumerate(probs):
         trial = 0
-        while trial < 100:
+        while trial < 30:
             grid = generate_gridworld(101, 101, prob)
-            res_unknown = algorithmA(grid, (0, 0), (100, 100), False, True)
+            res_unknown = algorithmA(grid, (0, 0), (100, 100), False, has_four_way_vision)
             if not res_unknown:
                 continue
-            trajectory_length.append(len(res_unknown[0]))
-            Num_of_cell.append(res_unknown[1])
-            #length_discovered = []
-            res_known =algorithmA(grid, (0, 0), (100, 100), True, True)
-            length_full.append(len(res_known[0]))
+            trajectory_length[prob] = len(res_unknown[0])
+            Num_of_cell[prob] = res_unknown[1]
+            shortest_discovered = A_star(res_unknown[2], (0, 0), (100, 100))
+            length_discovered[prob] = len(shortest_discovered[0])
+            traj_over_length_disc[prob] = len(res_unknown[0]) / len(shortest_discovered[0])
+            shortest_full = A_star(grid, (0, 0), (100, 100))
+            disc_over_full[prob] = len(shortest_discovered[0]) / len(shortest_full[0])
+            res_known =algorithmA(grid, (0, 0), (100, 100), True, has_four_way_vision)
+            length_full = len(res_known[0])
+            trial += 1
             
+    # Plot 1
+    plt.title("Density vs. Average Trajectory Length (one way vision)")
+    plt.xlabel("Density")
+    plt.ylabel("Average Trajectory Length")
+    plt.plot(probs, list(map(lambda x: (sum(x) / len(x)), list(trajectory_length.values()))))
+        
+    # Plot 2
+    plt.title("Density vs. Average (Length of Trajectory / Length of Shortest Path in Final Discovered Gridworld (one way vision)")
+    plt.xlabel("Density")
+    plt.ylabel("Average (Length of Trajectory / Length of Shortest Path in Final Discovered Gridworld")
+    plt.plot(probs, list(map(lambda x: (sum(x) / len(x)), list(traj_over_length_disc.values()))))
+            
+    # Plot 3
+    plt.title("Density vs Average (Length of Shortest Path in Final Discovered Gridworld / Length of ShortestPath in Full Gridworld (one way vision)")
+    plt.xlabel("Density")
+    plt.ylabel("Average (Length of Shortest Path in Final Discovered Gridworld / Length of ShortestPath in Full Gridworld")
+    plt.plot(probs, list(map(lambda x: (sum(x) / len(x)), list(disc_over_full.values()))))
     
-
-
-
+    # Plot 4
+    plt.title("Density vs Average Number of Cells Processed by Repeated A* (one way vision)")
+    plt.xlabel("Density")
+    plt.ylabel("Average Number of Cells Processed by Repeated A*")
+    plt.plot(probs, list(map(lambda x: (sum(x) / len(x)), list(Num_of_cell.values()))))
 
 #print("Plot 4 solvability array:", solvability_plot_4())
 #plot_data_5()    
-
+plot_Q6and7(True)
+plot_Q6and7(False)
 
 # Test algorithm
 # is_grid_known is True for Questions 4, 5. It is False for later questions
 # has_four_way_vision is True for all questions except 7
 #shortest_path = algorithmA(generate_gridworld(5, 5, 0.3), (0,0), (4,4), False, True)
 #test1
-#grid = np.array([[0, 0, 0, 1],
-#       [0, 0, 1, 0],
-#       [0, 1, 0, 0],
-#       [0, 0, 0, 0]])
+grid = np.array([[0, 0, 0, 1],
+       [0, 0, 1, 0],
+      [0, 1, 0, 0],
+       [0, 0, 0, 0]])
+shortest_path = algorithmA(grid, (0,0), (3,3), False, True)
 #start = (0,0)
 #end = (len(grid)-1,len(grid)-1)
 #path_finder = A_star(grid, start, end)
