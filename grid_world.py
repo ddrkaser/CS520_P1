@@ -18,6 +18,7 @@ def generate_gridworld(length, width, probability):
 EUCLIDEAN_DIST = 0
 MANHATTAN_DIST = 1
 CHEBYSHEV_DIST = 2
+CHEBEUCANDMANH_DIST = 3
 
 # Calculates h(x) using one of a range of heuristics
 def hureisticValue(point1, point2, heuristic_type = 1):
@@ -27,6 +28,8 @@ def hureisticValue(point1, point2, heuristic_type = 1):
         return sqrt((x1 - x2)**2 + (y1 - y2)**2)
     elif heuristic_type == 1:
         return abs(x1 - x2) + abs(y1 - y2)
+    elif heuristic_type == 3:
+        return (sqrt((x1 - x2)**2 + (y1 - y2)**2) + (abs(x1 - x2) + abs(y1 - y2)) + max(abs(x1 - x2), abs(y1 - y2)))/3
     else:
         return max(abs(x1 - x2), abs(y1 - y2))
 """
@@ -209,6 +212,7 @@ def plot_Q5():
     plt.title("Performance analysis, 100 trials, dim = 101, p = .3")
     plt.bar(["Euclidean", "Manhattan", "Chebyshev"], results.values() , color="#FF0000")
     return results
+
     
 #results = plot_Q5()        
 
@@ -295,3 +299,58 @@ shortest_path = algorithmA(grid, (0,0), (3,3), False, True)
 #end = (len(grid)-1,len(grid)-1)
 #path_finder = A_star(grid, start, end,1)
 #A_path, A_knowledge = algorithmA(grid,start,end,is_grid_known=False, has_four_way_vision=True)
+
+def plot_data_9():
+    euclidean_vals = []
+    manhattan_vals = []
+    chebyshev_vals = []
+    chebeucmanh_vals = []
+    
+    for heuristic in (EUCLIDEAN_DIST, MANHATTAN_DIST, CHEBYSHEV_DIST,CHEBEUCANDMANH_DIST):
+        trials = 0
+        while trials < 100:
+            t1 = time.time()
+            res = algorithmA(generate_gridworld(101, 101, 0.3), (0, 0), (100, 100), True, True, heuristic)
+            t2 = time.time()
+            if not res:
+                continue
+            runtime = t2 - t1
+            if heuristic == EUCLIDEAN_DIST:
+                euclidean_vals.append(runtime)
+            elif heuristic == MANHATTAN_DIST:
+                manhattan_vals.append(runtime)
+            elif heuristic == CHEBEUCANDMANH_DIST:
+                chebeucmanh_vals.append(runtime)       
+            else:
+                chebyshev_vals.append(runtime)
+            trials += 1
+    plt.xlabel("Heuristic Type")
+    plt.ylabel("Average A* Runtime (s)")
+    plt.title("Average Runtime by Heuristic Type, 100 trials, dim = 101, p = .3")
+    plt.bar(["Euclidean", "Manhattan", "Chebyshev","ChebEucManh"], [sum(euclidean_vals) / len(euclidean_vals), sum(manhattan_vals) / len(manhattan_vals), sum(chebyshev_vals) / len(chebyshev_vals),sum(chebeucmanh_vals) / len(chebeucmanh_vals)], color="#FF0000")
+
+    def plot_Q9():
+    results = {EUCLIDEAN_DIST:0, MANHATTAN_DIST:0, CHEBYSHEV_DIST:0,CHEBEUCANDMANH_DIST:0,}
+    run_time = {}
+    trials = 0
+    while trials <100:
+        grid = generate_gridworld(101, 101, 0.3)
+        for heuristic in (EUCLIDEAN_DIST, MANHATTAN_DIST, CHEBYSHEV_DIST,CHEBEUCANDMANH_DIST):
+            t1 = time.time()
+            res = A_star(grid, (0, 0), (100, 100), heuristic)
+            t2 = time.time()
+            if not res:
+                break
+            run_time[heuristic] = t2-t1
+        if not res:
+            continue
+        print(run_time)
+        #return the key with min value in the dic, here the heuristic with min time
+        winner = pd.Series(run_time).idxmin()
+        results[winner] += 1
+        trials += 1
+    plt.xlabel("Heuristic Type")
+    plt.ylabel("Total wins")
+    plt.title("Performance analysis, 100 trials, dim = 101, p = .3")
+    plt.bar(["Euclidean", "Manhattan", "Chebyshev","ChebEucManh"], results.values() , color="#FF0000")
+    return results
